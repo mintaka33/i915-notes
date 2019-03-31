@@ -20,6 +20,17 @@ __create_hw_context
 
 ## user mode driver call stack
 
+1st mos_gem_context_create
+```
+iHD_drv_video.so!drmIoctl(int fd, unsigned long request, void * arg) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/os/i915/xf86drm.c:180)
+iHD_drv_video.so!mos_gem_context_create(mos_bufmgr * bufmgr) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/os/i915/mos_bufmgr.c:4119)
+iHD_drv_video.so!OsContextSpecific::Init(OsContextSpecific * const this, PMOS_CONTEXT pOsDriverContext) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/os/mos_context_specific.cpp:450)
+iHD_drv_video.so!DdiMedia__Initialize(VADriverContextP ctx, int32_t * major_version, int32_t * minor_version) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/ddi/media_libva.cpp:1494)
+libva.so.2!va_openDriver(VADisplay dpy, char * driver_name) (/home/fresh/data/work/intel_opencl_linux/source/libva/va/va.c:461)
+libva.so.2!vaInitialize(VADisplay dpy, int * major_version, int * minor_version) (/home/fresh/data/work/intel_opencl_linux/source/libva/va/va.c:702)
+main(int argc, char ** argv) (/home/fresh/data/work/intel_opencl_linux/source/vaapi-opencl-interop/interop/vaocl.c:315)
+```
+
 mos_gem_context_create
 ```
 iHD_drv_video.so!drmIoctl(int fd, unsigned long request, void * arg) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/os/i915/xf86drm.c:181)
