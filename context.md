@@ -20,7 +20,7 @@ __create_hw_context
 
 ## user mode driver call stack
 
-1st mos_gem_context_create
+**1st mos_gem_context_create**
 ```
 iHD_drv_video.so!drmIoctl(int fd, unsigned long request, void * arg) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/os/i915/xf86drm.c:180)
 iHD_drv_video.so!mos_gem_context_create(mos_bufmgr * bufmgr) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/os/i915/mos_bufmgr.c:4119)
@@ -31,7 +31,7 @@ libva.so.2!vaInitialize(VADisplay dpy, int * major_version, int * minor_version)
 main(int argc, char ** argv) (/home/fresh/data/work/intel_opencl_linux/source/vaapi-opencl-interop/interop/vaocl.c:315)
 ```
 
-mos_gem_context_create
+**2nd mos_gem_context_create**
 ```
 iHD_drv_video.so!drmIoctl(int fd, unsigned long request, void * arg) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/os/i915/xf86drm.c:181)
 iHD_drv_video.so!mos_gem_context_create(mos_bufmgr * bufmgr) (/home/fresh/data/work/intel_opencl_linux/source/media-driver/media_driver/linux/common/os/i915/mos_bufmgr.c:4119)
