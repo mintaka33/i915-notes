@@ -28,3 +28,8 @@ libgsl-dev \
 libasound2-dev \
 libgsl-dev
 ```
+#### 2. meson build
+```bash
+sudo apt install meson
+
+```
