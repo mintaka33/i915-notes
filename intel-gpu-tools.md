@@ -26,14 +26,15 @@ libudev-dev \
 libglib2.0-dev \
 libgsl-dev \
 libasound2-dev \
-libgsl-dev
+libgsl-dev \
+libcurl3
 ```
 
 #### 2. install meson tool
 ```bash
 # the build requires newer meson version, the "apt install meson" cannot meet the requirement
 sudo apt-get install python3 python3-pip ninja-build
-pip3 install --user meson -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip3 install meson -i https://pypi.tuna.tsinghua.edu.cn/simple
 meson -v
 ```
 #### 3. meson build
@@ -41,5 +42,6 @@ meson -v
 cd SOURCE_DIR
 mkdir build
 meson build
-
+cd build
+ninja
 ```
