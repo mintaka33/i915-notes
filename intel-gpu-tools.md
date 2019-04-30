@@ -5,7 +5,7 @@ https://gitlab.freedesktop.org/drm/igt-gpu-tools
 
 ## build
 
-### install dependencies
+#### install dependencies
 ```bash
 sudo apt install \
 gtk-doc-tools \
