@@ -28,8 +28,18 @@ libgsl-dev \
 libasound2-dev \
 libgsl-dev
 ```
-#### 2. meson build
+
+#### 2. install meson tool
 ```bash
-sudo apt install meson
+# the build requires newer meson version, the "apt install meson" cannot meet the requirement
+sudo apt-get install python3 python3-pip ninja-build
+pip3 install --user meson -i https://pypi.tuna.tsinghua.edu.cn/simple
+meson -v
+```
+#### 3. meson build
+```bash
+cd SOURCE_DIR
+mkdir build
+meson build
 
 ```
