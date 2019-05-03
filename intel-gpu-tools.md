@@ -52,6 +52,5 @@ cd build/benchmark
 sudo ./gem_exec_ctx
 ```
 *Need disable UEFI Security Boot in BOIS* due to "Restrict debugfs when the kernel is locked down"
-https://patchwork.kernel.org/patch/10335801/
-
+https://patchwork.kernel.org/patch/10335801
 https://news.ycombinator.com/item?id=16761827
