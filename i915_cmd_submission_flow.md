@@ -37,6 +37,30 @@ init platform
 #define CFL_PLATFORM \
 	GEN9_FEATURES, \
 	PLATFORM(INTEL_COFFEELAKE)
+
+#define HAS_EXECLISTS(dev_priv) HAS_LOGICAL_RING_CONTEXTS(dev_priv)
+
+#define HAS_LOGICAL_RING_CONTEXTS(dev_priv) \
+		((dev_priv)->info.has_logical_ring_contexts)
+		
+// intel_engine_cs.c
+int intel_engines_init(struct drm_i915_private *dev_priv)
+{
+    if (HAS_EXECLISTS(dev_priv))
+        init = class_info->init_execlists;
+    else
+       init = class_info->init_legacy;
+}
+
+// intel_engine_cs.c
+static const struct engine_class_info intel_engine_classes[] = {
+	[RENDER_CLASS] = {
+		.name = "rcs",
+		.init_execlists = logical_render_ring_init,
+		.init_legacy = intel_init_render_ring_buffer,
+		.uabi_class = I915_ENGINE_CLASS_RENDER,
+	},
+}
 ```
 
 request_execute call flow
