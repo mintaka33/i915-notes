@@ -59,7 +59,7 @@ void __i915_request_submit(struct i915_request *request)
 
 ## i915_request_in
 ```c
-# intel_lrc.c
+// intel_lrc.c
 void __i915_request_submit(struct i915_request *request)
 {trace_i915_request_in(rq, port_index(port, execlists));}
 ```
