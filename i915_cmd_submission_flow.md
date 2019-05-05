@@ -35,6 +35,38 @@ void __i915_request_add(struct i915_request *request, bool flush_caches)
 
 # i915_request_submit
 
+**sw_fence_commit**
+
+```c
+void __i915_request_add(struct i915_request *request, bool flush_caches)
+{
+	/*
+	 * Let the backend know a new request has arrived that may need
+	 * to adjust the existing execution schedule due to a high priority
+	 * request - i.e. we may want to preempt the current request in order
+	 * to run a high priority dependency chain *before* we can execute this
+	 * request.
+	 *
+	 * This is called before the request is ready to run so that we can
+	 * decide whether to preempt the entire chain so that it is ready to
+	 * run at the earliest possible convenience.
+	 */
+	local_bh_disable();
+	rcu_read_lock(); /* RCU serialisation for set-wedged protection */
+	if (engine->schedule)
+		engine->schedule(request, &request->ctx->sched);
+	rcu_read_unlock();
+	i915_sw_fence_commit(&request->submit);
+	local_bh_enable(); /* Kick the execlists tasklet if just scheduled */
+}
+
+void i915_sw_fence_commit(struct i915_sw_fence *fence)
+{
+	debug_fence_activate(fence);
+	i915_sw_fence_complete(fence);
+}
+```
+
 **sw_fence_complete**
 
 ```c
