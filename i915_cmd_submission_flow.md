@@ -1,8 +1,7 @@
 i915 command buffer submission flow
+====
 
-# submission flow
-
-## i915_request_queue
+# i915_request_queue
 ```c
 // i915_gem_execbuffer.c
 i915_gem_do_execbuffer(struct drm_device *dev,
@@ -14,7 +13,7 @@ i915_gem_do_execbuffer(struct drm_device *dev,
     trace_i915_request_queue(eb.request, eb.batch_flags);
 }
 ```
-## i915_request_add
+# i915_request_add
 ```c
 // i915_gem_execbuffer.c
 i915_gem_do_execbuffer(struct drm_device *dev,
@@ -31,7 +30,7 @@ void __i915_request_add(struct i915_request *request, bool flush_caches)
 {trace_i915_request_add(request);}
 ```
 
-## i915_request_submit
+# i915_request_submit
 ```c
 submit_notify(struct i915_sw_fence *fence, enum i915_sw_fence_notify state)
 {
@@ -68,7 +67,7 @@ i915_gem_do_execbuffer(struct drm_device *dev,
 }
 ```
 
-## i915_request_execute
+# i915_request_execute
 
 **init platform**
 ```c
@@ -161,13 +160,13 @@ void __i915_request_submit(struct i915_request *request)
 {trace_i915_request_execute(request);}
 ```
 
-## i915_request_in
+# i915_request_in
 ```c
 // intel_lrc.c
 void __i915_request_submit(struct i915_request *request)
 {trace_i915_request_in(rq, port_index(port, execlists));}
 ```
-## i915_request_out
+# i915_request_out
 ```c
 static void execlists_submission_tasklet(unsigned long data)
 {
