@@ -67,6 +67,132 @@ void i915_sw_fence_commit(struct i915_sw_fence *fence)
 }
 ```
 
+**engine schedule**
+
+```c
+static void execlists_set_default_submission(struct intel_engine_cs *engine)
+{
+	engine->submit_request = execlists_submit_request;
+	engine->cancel_requests = execlists_cancel_requests;
+	engine->schedule = execlists_schedule;
+	engine->execlists.tasklet.func = execlists_submission_tasklet;
+}
+```
+
+**execlists_schedule**
+
+```c
+static void execlists_schedule(struct i915_request *request,
+			       const struct i915_sched_attr *attr)
+{
+	struct i915_priolist *uninitialized_var(pl);
+	struct intel_engine_cs *engine, *last;
+	struct i915_dependency *dep, *p;
+	struct i915_dependency stack;
+	const int prio = attr->priority;
+	LIST_HEAD(dfs);
+
+	GEM_BUG_ON(prio == I915_PRIORITY_INVALID);
+
+	if (i915_request_completed(request))
+		return;
+
+	if (prio <= READ_ONCE(request->sched.attr.priority))
+		return;
+
+	/* Need BKL in order to use the temporary link inside i915_dependency */
+	lockdep_assert_held(&request->i915->drm.struct_mutex);
+
+	stack.signaler = &request->sched;
+	list_add(&stack.dfs_link, &dfs);
+
+	/*
+	 * Recursively bump all dependent priorities to match the new request.
+	 *
+	 * A naive approach would be to use recursion:
+	 * static void update_priorities(struct i915_sched_node *node, prio) {
+	 *	list_for_each_entry(dep, &node->signalers_list, signal_link)
+	 *		update_priorities(dep->signal, prio)
+	 *	queue_request(node);
+	 * }
+	 * but that may have unlimited recursion depth and so runs a very
+	 * real risk of overunning the kernel stack. Instead, we build
+	 * a flat list of all dependencies starting with the current request.
+	 * As we walk the list of dependencies, we add all of its dependencies
+	 * to the end of the list (this may include an already visited
+	 * request) and continue to walk onwards onto the new dependencies. The
+	 * end result is a topological list of requests in reverse order, the
+	 * last element in the list is the request we must execute first.
+	 */
+	list_for_each_entry(dep, &dfs, dfs_link) {
+		struct i915_sched_node *node = dep->signaler;
+
+		/*
+		 * Within an engine, there can be no cycle, but we may
+		 * refer to the same dependency chain multiple times
+		 * (redundant dependencies are not eliminated) and across
+		 * engines.
+		 */
+		list_for_each_entry(p, &node->signalers_list, signal_link) {
+			GEM_BUG_ON(p == dep); /* no cycles! */
+
+			if (i915_sched_node_signaled(p->signaler))
+				continue;
+
+			GEM_BUG_ON(p->signaler->attr.priority < node->attr.priority);
+			if (prio > READ_ONCE(p->signaler->attr.priority))
+				list_move_tail(&p->dfs_link, &dfs);
+		}
+	}
+
+	/*
+	 * If we didn't need to bump any existing priorities, and we haven't
+	 * yet submitted this request (i.e. there is no potential race with
+	 * execlists_submit_request()), we can set our own priority and skip
+	 * acquiring the engine locks.
+	 */
+	if (request->sched.attr.priority == I915_PRIORITY_INVALID) {
+		GEM_BUG_ON(!list_empty(&request->sched.link));
+		request->sched.attr = *attr;
+		if (stack.dfs_link.next == stack.dfs_link.prev)
+			return;
+		__list_del_entry(&stack.dfs_link);
+	}
+
+	last = NULL;
+	engine = request->engine;
+	spin_lock_irq(&engine->timeline.lock);
+
+	/* Fifo and depth-first replacement ensure our deps execute before us */
+	list_for_each_entry_safe_reverse(dep, p, &dfs, dfs_link) {
+		struct i915_sched_node *node = dep->signaler;
+
+		INIT_LIST_HEAD(&dep->dfs_link);
+
+		engine = sched_lock_engine(node, engine);
+
+		if (prio <= node->attr.priority)
+			continue;
+
+		node->attr.priority = prio;
+		if (!list_empty(&node->link)) {
+			if (last != engine) {
+				pl = lookup_priolist(engine, prio);
+				last = engine;
+			}
+			GEM_BUG_ON(pl->priority != prio);
+			list_move_tail(&node->link, &pl->requests);
+		}
+
+		if (prio > engine->execlists.queue_priority &&
+		    i915_sw_fence_done(&sched_to_request(node)->submit))
+			__submit_queue(engine, prio);
+	}
+
+	spin_unlock_irq(&engine->timeline.lock);
+}
+```
+
 **sw_fence_complete**
 
 ```c
