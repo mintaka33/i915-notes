@@ -108,3 +108,16 @@ void __i915_request_submit(struct i915_request *request)
 {trace_i915_request_in(rq, port_index(port, execlists));}
 ```
 ## i915_request_out
+```c
+static void execlists_submission_tasklet(unsigned long data)
+{
+    execlists_context_schedule_out(rq, INTEL_CONTEXT_SCHEDULE_OUT);
+}
+
+execlists_context_schedule_out(struct i915_request *rq, unsigned long status)
+{
+    intel_engine_context_out(rq->engine);	
+    execlists_context_status_change(rq, status);
+    trace_i915_request_out(rq);
+}
+```
