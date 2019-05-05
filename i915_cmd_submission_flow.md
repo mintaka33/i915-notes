@@ -10,7 +10,7 @@ i915 command buffer submission flow
 
 ## i915_request_execute
 
-#### init platform
+init platform
 ```c
 // i915_pci.c
 #define GEN8_FEATURES \
@@ -39,7 +39,7 @@ i915 command buffer submission flow
 	PLATFORM(INTEL_COFFEELAKE)
 ```
 
-#### request_execute call flow
+request_execute call flow
 ```c
 static void execlists_set_default_submission(struct intel_engine_cs *engine)
 {engine->execlists.tasklet.func = execlists_submission_tasklet;}
