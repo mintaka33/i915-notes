@@ -42,7 +42,10 @@ init platform
 
 #define HAS_LOGICAL_RING_CONTEXTS(dev_priv) \
 		((dev_priv)->info.has_logical_ring_contexts)
-		
+```
+
+init func pointer
+```c
 // intel_engine_cs.c
 int intel_engines_init(struct drm_i915_private *dev_priv)
 {
