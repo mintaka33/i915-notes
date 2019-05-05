@@ -56,3 +56,11 @@ static bool __execlists_dequeue(struct intel_engine_cs *engine)
 void __i915_request_submit(struct i915_request *request)
 {trace_i915_request_execute(request);}
 ```
+
+## i915_request_in
+```c
+# intel_lrc.c
+void __i915_request_submit(struct i915_request *request)
+{trace_i915_request_in(rq, port_index(port, execlists));}
+```
+## i915_request_out
