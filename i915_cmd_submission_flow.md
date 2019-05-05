@@ -61,6 +61,23 @@ static const struct engine_class_info intel_engine_classes[] = {
 		.uabi_class = I915_ENGINE_CLASS_RENDER,
 	},
 }
+
+int logical_render_ring_init(struct intel_engine_cs *engine)
+{logical_ring_setup(engine);}
+
+logical_ring_setup(struct intel_engine_cs *engine)
+{logical_ring_default_vfuncs(engine);}
+
+logical_ring_default_vfuncs(struct intel_engine_cs *engine)
+{engine->set_default_submission = execlists_set_default_submission;}
+
+static void execlists_set_default_submission(struct intel_engine_cs *engine)
+{
+    engine->submit_request = execlists_submit_request;
+    engine->cancel_requests = execlists_cancel_requests;
+    engine->schedule = execlists_schedule;
+    engine->execlists.tasklet.func = execlists_submission_tasklet;
+}
 ```
 
 request_execute call flow
