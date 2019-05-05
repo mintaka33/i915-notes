@@ -49,6 +49,20 @@ static void i915_sw_fence_complete(struct i915_sw_fence *fence)
 }
 ```
 
+or
+
+```c
+static int i915_sw_fence_wake(wait_queue_entry_t *wq, unsigned mode, int flags, void *key)
+{
+	list_del(&wq->entry);
+	__i915_sw_fence_complete(wq->private, key);
+
+	if (wq->flags & I915_SW_FENCE_FLAG_ALLOC)
+		kfree(wq);
+	return 0;
+}
+```
+
 **call submit_notify**
 
 ```c
