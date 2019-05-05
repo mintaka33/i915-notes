@@ -33,22 +33,38 @@ void __i915_request_add(struct i915_request *request, bool flush_caches)
 
 ## i915_request_submit
 ```c
-static void execlists_submit_request(struct i915_request *request)
+submit_notify(struct i915_sw_fence *fence, enum i915_sw_fence_notify state)
 {
-    queue_request(engine, &request->sched, rq_prio(request));
-    submit_queue(engine, rq_prio(request));
+	struct i915_request *request =
+		container_of(fence, typeof(*request), submit);
+
+	switch (state) {
+	case FENCE_COMPLETE:
+		trace_i915_request_submit(request);
+		rcu_read_lock();
+		request->engine->submit_request(request);
+		rcu_read_unlock();
+		break;
+
+	case FENCE_FREE:
+		i915_request_put(request);
+		break;
+	}
+
+	return NOTIFY_DONE;
 }
 
-static void submit_queue(struct intel_engine_cs *engine, int prio)
-{
-    if (prio > engine->execlists.queue_priority)
-        __submit_queue(engine, prio);
-}
+i915_request_alloc(struct intel_engine_cs *engine, struct i915_gem_context *ctx)
+{i915_sw_fence_init(&i915_request_get(rq)->submit, submit_notify);}
 
-static void __submit_queue(struct intel_engine_cs *engine, int prio)
+i915_gem_do_execbuffer(struct drm_device *dev,
+		       struct drm_file *file,
+		       struct drm_i915_gem_execbuffer2 *args,
+		       struct drm_i915_gem_exec_object2 *exec,
+		       struct drm_syncobj **fences)
 {
-    engine->execlists.queue_priority = prio;
-    tasklet_hi_schedule(&engine->execlists.tasklet);
+	/* Allocate a request for this batch buffer nice and early. */
+	eb.request = i915_request_alloc(eb.engine, eb.ctx);
 }
 ```
 
