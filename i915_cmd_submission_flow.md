@@ -3,10 +3,38 @@ i915 command buffer submission flow
 # submission flow
 
 ## i915_request_queue
-
+```c
+i915_gem_do_execbuffer(struct drm_device *dev,
+		       struct drm_file *file,
+		       struct drm_i915_gem_execbuffer2 *args,
+		       struct drm_i915_gem_exec_object2 *exec,
+		       struct drm_syncobj **fences)
+{
+    trace_i915_request_queue(eb.request, eb.batch_flags);
+}
+```
 ## i915_request_add
 
 ## i915_request_submit
+```c
+static void execlists_submit_request(struct i915_request *request)
+{
+    queue_request(engine, &request->sched, rq_prio(request));
+    submit_queue(engine, rq_prio(request));
+}
+
+static void submit_queue(struct intel_engine_cs *engine, int prio)
+{
+    if (prio > engine->execlists.queue_priority)
+        __submit_queue(engine, prio);
+}
+
+static void __submit_queue(struct intel_engine_cs *engine, int prio)
+{
+    engine->execlists.queue_priority = prio;
+    tasklet_hi_schedule(&engine->execlists.tasklet);
+}
+```
 
 ## i915_request_execute
 
