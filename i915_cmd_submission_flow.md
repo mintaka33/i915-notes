@@ -4,6 +4,7 @@ i915 command buffer submission flow
 
 ## i915_request_queue
 ```c
+// i915_gem_execbuffer.c
 i915_gem_do_execbuffer(struct drm_device *dev,
 		       struct drm_file *file,
 		       struct drm_i915_gem_execbuffer2 *args,
@@ -14,6 +15,21 @@ i915_gem_do_execbuffer(struct drm_device *dev,
 }
 ```
 ## i915_request_add
+```c
+// i915_gem_execbuffer.c
+i915_gem_do_execbuffer(struct drm_device *dev,
+		       struct drm_file *file,
+		       struct drm_i915_gem_execbuffer2 *args,
+		       struct drm_i915_gem_exec_object2 *exec,
+		       struct drm_syncobj **fences)
+{
+    __i915_request_add(eb.request, err == 0);
+}
+
+// i915_request.c
+void __i915_request_add(struct i915_request *request, bool flush_caches)
+{trace_i915_request_add(request);}
+```
 
 ## i915_request_submit
 ```c
