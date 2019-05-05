@@ -35,6 +35,54 @@ void __i915_request_add(struct i915_request *request, bool flush_caches)
 
 # i915_request_submit
 
+**sw_fence_complete**
+
+```c
+static void i915_sw_fence_complete(struct i915_sw_fence *fence)
+{
+	debug_fence_assert(fence);
+
+	if (WARN_ON(i915_sw_fence_done(fence)))
+		return;
+
+	__i915_sw_fence_complete(fence, NULL);
+}
+```
+
+**call submit_notify**
+
+```c
+static void __i915_sw_fence_complete(struct i915_sw_fence *fence,
+				     struct list_head *continuation)
+{
+	debug_fence_assert(fence);
+
+	if (!atomic_dec_and_test(&fence->pending))
+		return;
+
+	debug_fence_set_state(fence, DEBUG_FENCE_IDLE, DEBUG_FENCE_NOTIFY);
+
+	if (__i915_sw_fence_notify(fence, FENCE_COMPLETE) != NOTIFY_DONE)
+		return;
+
+	debug_fence_set_state(fence, DEBUG_FENCE_NOTIFY, DEBUG_FENCE_IDLE);
+
+	__i915_sw_fence_wake_up_all(fence, continuation);
+
+	debug_fence_destroy(fence);
+	__i915_sw_fence_notify(fence, FENCE_FREE);
+}
+
+static int __i915_sw_fence_notify(struct i915_sw_fence *fence,
+				  enum i915_sw_fence_notify state)
+{
+	i915_sw_fence_notify_t fn;
+
+	fn = (i915_sw_fence_notify_t)(fence->flags & I915_SW_FENCE_MASK);
+	return fn(fence, state);
+}
+```
+
 **submit_notify**
 
 ```c
