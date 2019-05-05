@@ -31,6 +31,8 @@ void __i915_request_add(struct i915_request *request, bool flush_caches)
 ```
 
 # i915_request_submit
+
+**submit_notify**
 ```c
 submit_notify(struct i915_sw_fence *fence, enum i915_sw_fence_notify state)
 {
@@ -64,6 +66,63 @@ i915_gem_do_execbuffer(struct drm_device *dev,
 {
 	/* Allocate a request for this batch buffer nice and early. */
 	eb.request = i915_request_alloc(eb.engine, eb.ctx);
+}
+```
+
+**submit_request**
+```c
+static void execlists_set_default_submission(struct intel_engine_cs *engine)
+{
+	engine->submit_request = execlists_submit_request;
+	engine->cancel_requests = execlists_cancel_requests;
+	engine->schedule = execlists_schedule;
+	engine->execlists.tasklet.func = execlists_submission_tasklet;
+}
+
+static void execlists_submit_request(struct i915_request *request)
+{
+	queue_request(engine, &request->sched, rq_prio(request));
+	submit_queue(engine, rq_prio(request));
+}
+
+static void submit_queue(struct intel_engine_cs *engine, int prio)
+{
+	if (prio > engine->execlists.queue_priority)
+		__submit_queue(engine, prio);
+}
+
+static void __submit_queue(struct intel_engine_cs *engine, int prio)
+{
+	engine->execlists.queue_priority = prio;
+	tasklet_hi_schedule(&engine->execlists.tasklet);
+}
+
+static inline void tasklet_hi_schedule(struct tasklet_struct *t)
+{
+	if (!test_and_set_bit(TASKLET_STATE_SCHED, &t->state))
+		__tasklet_hi_schedule(t);
+}
+
+void __tasklet_hi_schedule(struct tasklet_struct *t)
+{
+	__tasklet_schedule_common(t, &tasklet_hi_vec,
+				  HI_SOFTIRQ);
+}
+
+static void __tasklet_schedule_common(struct tasklet_struct *t,
+				      struct tasklet_head __percpu *headp,
+				      unsigned int softirq_nr)
+{
+	struct tasklet_head *head;
+	unsigned long flags;
+
+	local_irq_save(flags);
+	head = this_cpu_ptr(headp);
+	t->next = NULL;
+	*head->tail = t;
+	head->tail = &(t->next);
+	raise_softirq_irqoff(softirq_nr);
+	local_irq_restore(flags);
 }
 ```
 
