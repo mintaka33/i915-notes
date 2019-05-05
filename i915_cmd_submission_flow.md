@@ -10,7 +10,7 @@ i915 command buffer submission flow
 
 ## i915_request_execute
 
-init platform
+**init platform**
 ```c
 // i915_pci.c
 #define GEN8_FEATURES \
@@ -44,7 +44,7 @@ init platform
 		((dev_priv)->info.has_logical_ring_contexts)
 ```
 
-init func pointer
+**init func pointer**
 ```c
 // intel_engine_cs.c
 int intel_engines_init(struct drm_i915_private *dev_priv)
@@ -83,7 +83,7 @@ static void execlists_set_default_submission(struct intel_engine_cs *engine)
 }
 ```
 
-request_execute call flow
+**request_execute call flow**
 ```c
 static void execlists_set_default_submission(struct intel_engine_cs *engine)
 {engine->execlists.tasklet.func = execlists_submission_tasklet;}
