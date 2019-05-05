@@ -2,6 +2,7 @@ i915 command buffer submission flow
 ====
 
 # i915_request_queue
+
 ```c
 // i915_gem_execbuffer.c
 i915_gem_do_execbuffer(struct drm_device *dev,
@@ -13,7 +14,9 @@ i915_gem_do_execbuffer(struct drm_device *dev,
     trace_i915_request_queue(eb.request, eb.batch_flags);
 }
 ```
+
 # i915_request_add
+
 ```c
 // i915_gem_execbuffer.c
 i915_gem_do_execbuffer(struct drm_device *dev,
@@ -33,6 +36,7 @@ void __i915_request_add(struct i915_request *request, bool flush_caches)
 # i915_request_submit
 
 **submit_notify**
+
 ```c
 submit_notify(struct i915_sw_fence *fence, enum i915_sw_fence_notify state)
 {
@@ -70,6 +74,7 @@ i915_gem_do_execbuffer(struct drm_device *dev,
 ```
 
 **submit_request**
+
 ```c
 static void execlists_set_default_submission(struct intel_engine_cs *engine)
 {
@@ -129,6 +134,7 @@ static void __tasklet_schedule_common(struct tasklet_struct *t,
 # i915_request_execute
 
 **init platform**
+
 ```c
 // i915_pci.c
 #define GEN8_FEATURES \
@@ -163,6 +169,7 @@ static void __tasklet_schedule_common(struct tasklet_struct *t,
 ```
 
 **init func pointer**
+
 ```c
 // intel_engine_cs.c
 int intel_engines_init(struct drm_i915_private *dev_priv)
@@ -201,11 +208,24 @@ static void execlists_set_default_submission(struct intel_engine_cs *engine)
 }
 ```
 
-**request_execute call flow**
+**register**
+
+```c
+logical_ring_setup(struct intel_engine_cs *engine)
+{
+	tasklet_init(&engine->execlists.tasklet,
+		     execlists_submission_tasklet, (unsigned long)engine);
+}
+```
+or
 ```c
 static void execlists_set_default_submission(struct intel_engine_cs *engine)
 {engine->execlists.tasklet.func = execlists_submission_tasklet;}
+```
 
+**request_execute call flow**
+
+```c
 static void execlists_submission_tasklet(unsigned long data)
 {execlists_dequeue(engine);}
 
@@ -220,12 +240,14 @@ void __i915_request_submit(struct i915_request *request)
 ```
 
 # i915_request_in
+
 ```c
 // intel_lrc.c
 void __i915_request_submit(struct i915_request *request)
 {trace_i915_request_in(rq, port_index(port, execlists));}
 ```
 # i915_request_out
+
 ```c
 static void execlists_submission_tasklet(unsigned long data)
 {
