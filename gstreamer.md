@@ -39,8 +39,11 @@ gvafpscounter ! fakesink sync=true
 
 ## decode + VPP
 ```bash
-gst-launch-1.0 filesrc location=/home/fresh/data/video/test.mp4 ! qtdemux ! h264parse ! vaapih264dec ! vaapipostproc ! videoconvert ! video/x-raw, format=BGR ! gvafpscounter ! fakesink sync=false
-gst-launch-1.0 filesrc location=/home/fresh/data/video/test2.mp4 ! qtdemux ! h264parse ! vaapih264dec ! vaapipostproc ! videoconvert ! video/x-raw, format=BGR ! filesink location=out.yuv
+gst-launch-1.0 filesrc location=/home/fresh/data/video/test.mp4 ! qtdemux ! h264parse ! vaapih264dec ! \
+vaapipostproc ! videoconvert ! video/x-raw, format=BGR ! gvafpscounter ! fakesink sync=false
+
+gst-launch-1.0 filesrc location=/home/fresh/data/video/test2.mp4 ! qtdemux ! h264parse ! vaapih264dec ! \
+vaapipostproc ! videoconvert ! video/x-raw, format=BGR ! filesink location=out.yuv
 
 gst-launch-1.0 filesrc location=/home/fresh/data/video/test.mp4 ! \
 qtdemux ! h264parse ! vaapih264dec ! \
