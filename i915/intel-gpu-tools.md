@@ -32,7 +32,7 @@ libcurl3
 
 #### 2. install meson tool
 ```bash
-# the build requires newer meson version, the "apt install meson" cannot meet the requirement
+# build requires newer meson version, but "apt install meson" cannot meet the requirement, use below cmd to update meson
 sudo apt-get install python3 python3-pip ninja-build
 pip3 install meson -i https://pypi.tuna.tsinghua.edu.cn/simple
 meson -v
