@@ -12,3 +12,5 @@ pip install pyopencl-2022.1-cp39-cp39-win_amd64.whl
 ## link
 
 https://documen.tician.de/pyopencl/
+
+https://github.com/inducer/pyopencl
